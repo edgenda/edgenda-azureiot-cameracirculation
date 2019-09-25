@@ -1,0 +1,19 @@
+FROM microsoft/dotnet:2.2-sdk AS build-env
+WORKDIR /app
+
+COPY *.csproj ./
+RUN dotnet restore
+
+COPY . ./
+RUN dotnet publish -c Release -o out
+
+FROM microsoft/dotnet:2.2-runtime-nanoserver-1809
+WORKDIR /app
+COPY --from=build-env /app/out ./
+
+EXPOSE 15000
+EXPOSE 15001
+ENV CAMERASERVER_ZMQ_SERVERHOSTNAME=*
+ENV CAMERASERVER_ZMQ_SERVERBASEPORT=15000
+
+ENTRYPOINT ["dotnet", "Edgenda.AzureIoT.CameraCirculation.ConsoleApp.dll"]
